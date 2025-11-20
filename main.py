@@ -8,7 +8,7 @@ import threading
 import logging
 import importlib
 
-from function_tool import function_tool
+#from function_tool import function_tool
 import json as json_module
 import httpx
 import aiohttp
