@@ -7,8 +7,9 @@ from datetime import datetime, UTC
 import threading
 import logging
 import importlib
-
-#from function_tool import function_tool
+from google import generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from function_tool import function_tool
 import json as json_module
 import httpx
 import aiohttp
@@ -19,14 +20,33 @@ SLACK_CHANNEL = os.getenv("SLACK_CHANNEL", "#security-alerts")
 
 
 # --- Setup ---
-client = AsyncOpenAI()
+#client = AsyncOpenAI()
+import os
+#from openai import AsyncOpenAI
 
+# Grok API kompatibel mit OpenAI-Client machen
+#client = AsyncOpenAI(
+#    api_key=os.getenv("XAI_API_KEY"),        # Dein Grok API-Key
+#    base_url="https://api.x.ai/v1"            # Das ist der entscheidende Unterschied!
+#)
 
 # Global sandbox configuration (sanitized for open release)
 # Provide a factory via env var SANDBOX_FACTORY="your_module:create_sandbox" that returns a sandbox instance
-SANDBOX_FACTORY = os.getenv("SANDBOX_FACTORY")
+#SANDBOX_FACTORY = os.getenv("SANDBOX_FACTORY")
 
 # Thread-local storage for sandbox instances
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")   # <-- das ist alles, was du brauchst
+
+if not GOOGLE_API_KEY:
+    raise ValueError("Setze die Umgebungsvariable GOOGLE_API_KEY!")
+
+genai.configure(api_key=GOOGLE_API_KEY)
+
+# ------------------------------------------------------------------
+# 2. Welches Modell willst du? (Free-Tier vs. Paid)
+# ------------------------------------------------------------------
+# Kostenlos verfügbar (Free Tier, reicht für die meisten Pentesting-Agents):
+MODEL_NAME = "gemini-2.0-flash-exp"
 _thread_local = threading.local()
 
 def get_current_sandbox():
@@ -543,7 +563,7 @@ async def run_sandbox_agent(instruction: str, max_rounds: int = 100):
     rounds_completed = 0
     while True:
         response = await client.responses.create(
-            model="gpt-5",
+            model="grok-4",
             tools=sandbox_tools,
             input=sandbox_input_list,
             reasoning={ "effort": "high" },
@@ -627,7 +647,7 @@ async def run_validator_agent(instruction: str, max_rounds: int = 50):
     rounds_completed = 0
     while True:
         response = await client.responses.create(
-            model="gpt-5",
+            model="grok-4",
             tools=validator_tools,
             input=validator_input_list,
             reasoning={ "effort": "high" },
@@ -891,7 +911,7 @@ async def run_continuously(max_rounds: int = 100, user_prompt: str = "", system_
         while True:
             # 1) Ask the model what to do next
             response = await client.responses.create(
-                model="gpt-5",
+                model="grok-4",
                 tools=main_agent_tools,
                 input=input_list,
                 reasoning={ "effort": "high" },
@@ -1068,7 +1088,7 @@ async def run_parallel_scans(targets: List[str], system_prompt: str, base_user_p
 
 if __name__ == "__main__":
     import sys
-    
+    print("started")
     # Set up logging
     logging.basicConfig(
         level=logging.INFO,
@@ -1078,7 +1098,7 @@ if __name__ == "__main__":
             logging.StreamHandler()
         ]
     )
-    
+    print("programm started")    
     system_prompt = os.getenv("SYSTEM_PROMPT", "SYSTEM_PROMPT_REDACTED")
 
     # Check if targets.txt file exists in current directory
@@ -1103,4 +1123,4 @@ if __name__ == "__main__":
             
             print("\nAll scans completed!")
             sys.exit(0)
-    
+    print("no targets file found")    
