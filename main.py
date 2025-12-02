@@ -19,7 +19,7 @@ SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL", "#security-alerts")
 
 # Wähle dein Modell (empfohlen: gemini-1.5-pro oder gemini-1.5-flash)
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-pro")
 
 # === Logging & Usage Tracking ===
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
