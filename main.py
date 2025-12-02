@@ -91,7 +91,7 @@ async def send_slack_security_alert(
 
 # === Tools Definition für Gemini ===
 tools = [
-    Tool.from_dict({
+    {
         "function_declarations": [
             {
                 "name": "send_slack_security_alert",
@@ -110,7 +110,7 @@ tools = [
                 }
             }
         ]
-    })
+    }
 ]
 
 # === Haupt-Scan-Funktion ===
